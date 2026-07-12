@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://i.postimg.cc/xCN4JFN1/Stores-API-Logo.png" alt="Stores-API Logo" width="400" height="auto" />
+  <img src="https://i.postimg.cc/d38JfYRX/Clothing-Stores-API-Logo.png" alt="ClothingStoresAPI-Logo" width="400" height="auto" />
 </p>
 
 <p align="center">API designed for clothing stores use, developed in NestJS, utilizing S3, MercadoPago, and Neon.</p>
@@ -50,9 +50,9 @@ Before running or deploying this project, ensure you have the following credenti
 1. **Clone the repository.**
 
 ```bash
-git clone https://github.com/EstebanAcApp/Stores-API.git
+git clone https://github.com/EstebanAcApp/ClothingStores-API.git
 
-cd Stores-API
+cd ClothingStores-API
 ```
 
 2. **Install the dependencies.**
@@ -84,7 +84,6 @@ SAAS_PRICE=
 
 ```bash
 # Development:
-
 $ npm run start
 
 # watch mode
@@ -129,4 +128,4 @@ $ npm run deploy:prod
 
 ## License
 
-This API is [MIT licensed](https://github.com/EstebanAcApp/Stores-API/blob/main/LICENSE).
+This API is [MIT licensed](https://github.com/EstebanAcApp/ClothingStores-API/blob/main/LICENSE).
