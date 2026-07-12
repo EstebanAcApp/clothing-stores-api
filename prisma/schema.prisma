@@ -1,0 +1,202 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+  moduleFormat = "cjs"
+  previewFeatures = ["postgresqlExtensions"]
+}
+
+datasource db {
+  provider = "postgresql"
+  extensions = [citext]
+}
+
+
+// Models
+
+// Staff
+model User {
+  id String @id @default(uuid())
+  email String @unique
+  password String
+  name String
+  role UserRole
+  status UserStatus
+  temporaryPassword Boolean @default(true)
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  devices Device[]
+
+  @@map("users")
+}
+
+model Device {
+  id String @id @default(uuid())
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  userId String @map("user_id")
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("devices")
+}
+
+// Customer
+model Customer {
+  id String @id @default(uuid())
+  email String @unique
+  userName String @unique @db.Citext @map("username")
+  password String
+  firstName String @map("first_name")
+  lastName String @map("last_name")
+  phone String
+  address String
+  status CustomerStatus @default(ACTIVE)
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  orders Order[]
+
+  @@map("customers")
+}
+
+model Order {
+  id String @id @default(uuid())
+  name String
+  phone String
+  address String
+  status OrderStatus @default(PENDING)
+
+  items OrderItem[]
+  total Int
+  paymentId String @unique @map("payment_id")
+  
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  customerId String @map("customer_id")
+  customer Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@map("orders")
+}
+
+model OrderItem {
+  id String @id @default(uuid())
+  quantity Int
+  price Int
+
+  orderId String @map("order_id")
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  productId String @map("product_id")
+  productVariantId String @map("product_variant_id")
+
+  productVariant ProductVariant @relation(fields: [productVariantId, productId], references: [id, productId], onDelete: Restrict)
+
+  @@map("order_items")
+}
+
+// Products
+model Category {
+  id String @id @default(uuid())
+  name String @unique @db.Citext
+  description String
+
+  products Product[]
+
+  @@map("categories")
+}
+
+model Product {
+  id String @id @default(uuid())
+  name String @unique @db.Citext
+  description String
+  price Int
+  status ProductStatus
+  mediaKeys String[] @map("media_keys")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  variants ProductVariant[]
+
+  categoryId String @map("category_id")
+  category Category @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+
+  @@map("products")
+}
+
+model ProductVariant {
+  id String @id @default(uuid())
+  stock Int @default(0)
+
+  productId String @map("product_id")
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  colorId String @map("color_id")
+  color Color @relation(fields: [colorId], references: [id], onDelete: Restrict)
+
+  sizeId String @map("size_id")
+  size Size @relation(fields: [sizeId], references: [id], onDelete: Restrict)
+
+  orderItems OrderItem[]
+
+  @@unique([id, productId])
+  @@unique([productId, colorId, sizeId])
+  @@map("product_variants")
+}
+
+model Color {
+  id String @id @default(uuid())
+  name String @unique @db.Citext
+  hexCode String @map("hex_code")
+
+  variants ProductVariant[]
+
+  @@map("colors")
+}
+
+model Size {
+  id String @id @default(uuid())
+  name String @unique @db.Citext
+
+  variants ProductVariant[]
+
+  @@map("sizes")
+}
+
+
+// Enums
+
+// Staff
+enum UserRole {
+  OWNER
+  MANAGER
+  WORKER
+  DELIVERY
+}
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+  FIRED
+}
+
+// Customer
+enum CustomerStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+  DELIVERED
+}
+
+// Shared
+enum ProductStatus {
+  ACTIVE
+  INACTIVE
+}
