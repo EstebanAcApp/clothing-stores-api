@@ -84,7 +84,6 @@ SAAS_PRICE=
 
 ```bash
 # Development:
-
 $ npm run start
 
 # watch mode
