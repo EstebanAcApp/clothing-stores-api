@@ -22,8 +22,11 @@ export class DashboardController {
   getProducts(
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
     @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
+    @Query('categoryId') categoryId?: string,
+    @Query('colorId') colorId?: string,
+    @Query('sizeId') sizeId?: string,
   ) {
-    return this.dashboardService.getProducts(page, limit);
+    return this.dashboardService.getProducts(page, limit, categoryId, colorId, sizeId);
   }
 
   @Get('products/:id')

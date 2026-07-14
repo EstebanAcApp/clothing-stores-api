@@ -34,6 +34,8 @@ export class OrdersService {
           address: true,
           status: true,
           total: true,
+          createdAt: true,
+          updatedAt: true,
         },
         skip,
         take: limit,
@@ -66,6 +68,8 @@ export class OrdersService {
           address: true,
           status: true,
           total: true,
+          createdAt: true,
+          updatedAt: true,
           items: {
             select: {
               id: true,
@@ -88,7 +92,7 @@ export class OrdersService {
           price: true,
         },
       });
-
+      
       return {
         order,
         products,
@@ -313,6 +317,8 @@ export class OrdersService {
           address: true,
           status: true,
           total: true,
+          createdAt: true,
+          updatedAt: true,
           items: {
             select: {
               id: true,

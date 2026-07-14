@@ -12,11 +12,26 @@ export class AwsService {
         private readonly config: ConfigService,
     ) { }
 
+    async getDownloadPresignedUrl(
+        key: string,
+    ) {
+        const command = new GetObjectCommand({
+            Bucket: this.config.get<string>('AWS_BUCKET_NAME'),
+            Key: key,
+        });
+
+        try {
+            return getSignedUrl(this.s3, command, { expiresIn: 3600 });
+        } catch (error) {
+            throw new InternalServerErrorException('Could not generate download URL (S3)');
+        }
+    }
+    
     async getUploadPresignedUrl(
         id: string,
         fileName: string,
         mimeType: string,
-    ): Promise<{ uploadUrl: string, key: string }> {
+    ) {
         const key = `${id}/${uuidv4().replace(/-/g, '').slice(0, 8)}-${fileName}`;
 
         const command = new PutObjectCommand({
@@ -25,23 +40,16 @@ export class AwsService {
             ContentType: mimeType,
         });
 
-        const uploadUrl = await getSignedUrl(this.s3, command, { expiresIn: 900 });
+        try {
+            const uploadUrl = await getSignedUrl(this.s3, command, { expiresIn: 900 });
 
-        return {
-            uploadUrl,
-            key,
-        };
-    }
-
-    async getDownloadPresignedUrl(
-        key: string,
-    ): Promise<string> {
-        const command = new GetObjectCommand({
-            Bucket: this.config.get<string>('AWS_BUCKET_NAME'),
-            Key: key,
-        });
-        
-        return getSignedUrl(this.s3, command, { expiresIn: 3600 });
+            return {
+                uploadUrl,
+                key,
+            };
+        } catch (error) {
+            throw new InternalServerErrorException('Could not generate upload URL (S3)');
+        }
     }
 
     async deleteObject(

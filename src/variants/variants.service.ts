@@ -23,6 +23,15 @@ export class VariantsService {
           colorId,
           sizeId,
         },
+        select: {
+          id: true,
+          stock: true,
+          productId: true,
+          colorId: true,
+          sizeId: true,
+          color: true,
+          size: true,
+        },
       });
     } catch (error) {
       this.prisma.handleError(error, 'Error creating the product variant');

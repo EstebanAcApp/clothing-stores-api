@@ -13,7 +13,7 @@ export class UploadMenuItemImageDto {
     @Transform(({ value }) => typeof value === 'string' ? value.trim().toLowerCase() : value)
     fileName!: string;
 
-    @IsEnum(AllowedImageMimeType, { message: 'Only .jpeg and .png images are allowed' })
+    @IsEnum(AllowedImageMimeType, { message: 'Only .jpg, .jpeg and .png images are allowed' })
     @IsNotEmpty({ message: 'The mime type is required' })
     @Transform(({ value }) => typeof value === 'string' ? value.trim().toLowerCase() : value)
     mimeType!: string;

@@ -18,8 +18,11 @@ export class ProductsController {
   getProducts(
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
     @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit : number,
+    @Query('categoryId') categoryId?: string,
+    @Query('colorId') colorId?: string,
+    @Query('sizeId') sizeId?: string,
   ) {
-    return this.productsService.getProducts(page, limit)
+    return this.productsService.getProducts(page, limit, categoryId, colorId, sizeId);
   }
 
   @Public()
@@ -27,7 +30,7 @@ export class ProductsController {
   getProductById(
     @Param('id') id: string,
   ) {
-    return this.productsService.getProductById(id)
+    return this.productsService.getProductById(id);
   }
 
   @Roles('OWNER', 'MANAGER')

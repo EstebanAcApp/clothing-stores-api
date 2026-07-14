@@ -57,6 +57,7 @@ export class DashboardService {
         description: true,
         price: true,
         status: true,
+        mediaKeys: true,
         variants: {
           select: {
             stock: true,
@@ -65,11 +66,30 @@ export class DashboardService {
       },
     });
 
+    const processedProducts = await Promise.all(
+      productsData.map(async (product) => {
+        let imageUrls: string[] = [];
+
+        if (product.mediaKeys && product.mediaKeys.length > 0) {
+          const firstMediaKey = product.mediaKeys[0];
+          const { images } = await this.productsService.getImageUrls([firstMediaKey]);
+          imageUrls = images;
+        }
+
+        const { mediaKeys, ...productWithoutKeys } = product;
+
+        return {
+          ...productWithoutKeys,
+          images: imageUrls,
+        };
+      })
+    );
+
     return {
       recentOrders,
-      topProducts: productsData,
-      totalSales,
-      quantityOfProductsSold,
+      topProducts: processedProducts,
+      totalSales: totalSales._sum.total === null ? 0 : totalSales._sum.total,
+      quantityOfProductsSold: quantityOfProductsSold._sum.quantity === null ? 0 : quantityOfProductsSold._sum.quantity,
       ordersPendingDelivery,
       deliveredOrders,
     };
@@ -78,12 +98,27 @@ export class DashboardService {
   async getProducts(
     page: number,
     limit: number,
+    categoryId?: string,
+    colorId?: string,
+    sizeId?: string,
   ) {
     const skip = (page - 1) * limit;
 
-    const [products, categories, colors, sizes, activeProducts, inactiveProducts, totalProducts] = await this.prisma.$transaction([
+    const [products, categories, colors, sizes, activeProducts, inactiveProducts, totalCategories, totalProducts] = await this.prisma.$transaction([
       this.prisma.product.findMany({
+        where: {
+          ...(categoryId && { categoryId }),
+          ...((colorId || sizeId) && {
+            variants: {
+              some: {
+                ...(colorId && { colorId }),
+                ...(sizeId && { sizeId }),
+              },
+            },
+          }),
+        },
         include: {
+          category: true,
           variants: {
             include: {
               color: true,
@@ -115,14 +150,37 @@ export class DashboardService {
           name: true,
         },
       }),
-      this.prisma.product.count({where: {status: 'ACTIVE'}}),
-      this.prisma.product.count({where: {status: 'INACTIVE'}}),
-      this.prisma.product.count(),
+      this.prisma.product.count({ where: { status: 'ACTIVE' } }),
+      this.prisma.product.count({ where: { status: 'INACTIVE' } }),
+      this.prisma.category.count(),
+      this.prisma.product.count({
+        where: {
+          ...(categoryId && { categoryId }),
+        },
+      }),
     ]);
+
+    const processedProducts = await Promise.all(
+      products.map(async (product) => {
+        let imageUrls: string[] = [];
+
+        if (product.mediaKeys && product.mediaKeys.length > 0) {
+          const { images } = await this.productsService.getImageUrls([product.mediaKeys[0]]);
+          imageUrls = images;
+        }
+
+        const { mediaKeys, ...productWithoutKeys } = product;
+
+        return {
+          ...productWithoutKeys,
+          images: imageUrls,
+        };
+      })
+    );
 
     return {
       data: {
-        products,
+        products: processedProducts,
         categories,
         colors,
         sizes,
@@ -130,6 +188,7 @@ export class DashboardService {
       meta: {
         activeProducts,
         inactiveProducts,
+        totalCategories,
         totalProducts,
         page,
         limit,
@@ -150,13 +209,14 @@ export class DashboardService {
   ) {
     const skip = (page - 1) * limit;
 
-    const [orders, ordersPendingDelivery, deliveredOrders, totalOrders] = await this.prisma.$transaction([
+    const [orders, ordersPendingDelivery, deliveredOrders, cancelledOrders, totalOrders] = await this.prisma.$transaction([
       this.prisma.order.findMany({
         select: {
           id: true,
           name: true,
           phone: true,
           address: true,
+          status: true,
           total: true,
           createdAt: true,
           updatedAt: true,
@@ -164,8 +224,9 @@ export class DashboardService {
         skip,
         take: limit,
       }),
-      this.prisma.order.count({where: {status: 'CONFIRMED'}}),
-      this.prisma.order.count({where: {status: 'DELIVERED'}}),
+      this.prisma.order.count({ where: { status: 'CONFIRMED' } }),
+      this.prisma.order.count({ where: { status: 'DELIVERED' } }),
+      this.prisma.order.count({ where: { status: 'CANCELLED' } }),
       this.prisma.order.count(),
     ]);
 
@@ -174,6 +235,7 @@ export class DashboardService {
       meta: {
         ordersPendingDelivery,
         deliveredOrders,
+        cancelledOrders,
         totalOrders,
         page,
         limit,
