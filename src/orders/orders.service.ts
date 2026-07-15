@@ -9,6 +9,8 @@ import { PaymentsStoreService } from 'src/payments/payments-store.service';
 import { type CustomerPayload } from 'src/common/types/express';
 import { Item } from 'src/common/interfaces/product.interface';
 
+import { Prisma } from 'generated/prisma/client';
+
 @Injectable()
 export class OrdersService {
   constructor(
@@ -92,7 +94,7 @@ export class OrdersService {
           price: true,
         },
       });
-      
+
       return {
         order,
         products,
@@ -103,15 +105,30 @@ export class OrdersService {
   }
 
   async getSelfOrderPaymentToken(
-    id: string,
+    orderId: string,
     customerId: string,
   ) {
     try {
       const order = await this.prisma.order.findFirstOrThrow({
-        where: { id, customerId },
+        where: { id: orderId, customerId },
         select: {
-          paymentId: true,
+          id: true,
+          name: true,
+          phone: true,
+          address: true,
           status: true,
+          total: true,
+          paymentId: true,
+          createdAt: true,
+          updatedAt: true,
+          items: {
+            select: {
+              id: true,
+              quantity: true,
+              price: true,
+              productId: true,
+            },
+          },
         },
       });
 
@@ -119,11 +136,36 @@ export class OrdersService {
         throw new ConflictException('It is not possible to obtain the payment token for this order');
       }
 
-      const { client_token } = await this.mp.getOrder(order.paymentId);
+      const productIds = [...new Set(order.items.map((i) => i.productId))]
+      const products = await this.prisma.product.findMany({
+        where: { id: { in: productIds } },
+        select: {
+          id: true,
+          name: true,
+          description: true,
+          price: true,
+        },
+      });
 
-      return { client_token };
+      const { id, client_token, external_reference, total_amount } = await this.mp.getOrder(order.paymentId);
+
+      const { paymentId: _, ...orderWithoutPaymentId } = order;
+
+      return {
+        order: orderWithoutPaymentId,
+        products,
+        paymentData: {
+          id,
+          client_token,
+          external_reference,
+          total_amount,
+        },
+      };
     } catch (error) {
-      this.prisma.handleError(error, 'The order does not exist');
+      if(error instanceof Prisma.PrismaClientKnownRequestError) {
+        this.prisma.handleError(error, 'The order does not exist');
+      }
+      throw error;
     }
   }
 
@@ -262,22 +304,8 @@ export class OrdersService {
         },
       });
 
-      const productIds = [...new Set(order.items.map((i) => i.productId))]
-
-      const products = await this.prisma.product.findMany({
-        where: { id: { in: productIds } },
-        select: {
-          id: true,
-          name: true,
-          description: true,
-          price: true,
-        },
-      });
-
       return {
-        order,
-        products,
-        client_token,
+        id: order.id,
       };
     } catch (error) {
       await this.mp.cancelOrder(id);
@@ -303,6 +331,7 @@ export class OrdersService {
     }
   }
 
+  async 
   // Staff
   async getOrderbyId(
     id: string,

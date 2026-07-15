@@ -2,7 +2,7 @@ import { Controller, Post, Body, Patch, Param, Delete, Query, Get, DefaultValueP
 
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
-import { UploadMenuItemImageDto, DeleteMenuItemImageDto } from './dto/product-image.dto'
+import { UploadProductImageDto, ConfirmUploadProductImageDto, DeleteMenuItemImageDto } from './dto/product-image.dto'
 
 import { ProductsService } from './products.service';
 
@@ -60,11 +60,20 @@ export class ProductsController {
 
   @Roles('OWNER', 'MANAGER')
   @Post(':id/image')
-  uploadProductImage(
+  getProductImageUploadUrl(
     @Param('id') id: string,
-    @Body() dto: UploadMenuItemImageDto,
+    @Body() dto: UploadProductImageDto,
   ) {
-    return this.productsService.uploadProductImage(id, dto);
+    return this.productsService.getProductImageUploadUrl(id, dto);
+  }
+
+  @Roles('OWNER', 'MANAGER')
+  @Post(':id/image/confirm')
+  confirmUploadProductImage(
+    @Param('id') id: string,
+    @Body() dto: ConfirmUploadProductImageDto,
+  ) {
+    return this.productsService.confirmUploadProductImage(id, dto);
   }
 
   @Roles('OWNER', 'MANAGER')

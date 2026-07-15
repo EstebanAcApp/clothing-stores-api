@@ -16,7 +16,7 @@ export class OrdersController {
   constructor(private readonly ordersService: OrdersService) { }
 
   @Customer()
-  @Get(':id/pay-token')
+  @Get(':id/pay-data')
   getSelfOrderPaymentToken(
     @Param('id') id: string,
     @CurrentAccount() customer: CustomerPayload,

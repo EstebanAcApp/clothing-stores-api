@@ -45,10 +45,10 @@ export class RegisterCustomerDto {
     @Transform(({ value }) => typeof value === 'string' ? value.trim() : value)
     lastName!: string;
 
-    @Length(14, 14, { message: 'The phone is invalid' })
-    @IsNotEmpty({ message: 'The first name is required' })
+    @Length(13, 13, { message: 'The phone is invalid' })
+    @IsNotEmpty({ message: 'The phone is required' })
     @IsString()
-    @Transform(({ value }) => typeof value === 'string' ? value.trim() : value)
+    @Transform(({ value }) => typeof value === 'string' ? value.trim().replaceAll(' ', '') : value)
     phone!: string;
 
     @IsNotEmpty({ message: 'The address is required' })

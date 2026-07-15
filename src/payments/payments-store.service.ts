@@ -24,6 +24,21 @@ export class PaymentsStoreService {
         }
     }
 
+    async processOrder(id: string) {
+        const order = new Order(this.mp_client);
+        
+        try {
+            return await order.process({
+                id,
+                requestOptions: {
+                    idempotencyKey: `process-${id}`,
+                },
+            });
+        } catch (error) {
+            throw new InternalServerErrorException('Error retrieving the order (MP)');
+        }
+    }
+
     async createOrder(
         items: Item[],
         payer: Payer,

@@ -6,7 +6,7 @@ export enum AllowedImageMimeType {
     PNG = 'image/png',
 }
 
-export class UploadMenuItemImageDto {
+export class UploadProductImageDto {
     @MinLength(4, { message: 'The file name is invalid' })
     @IsNotEmpty({ message: 'The file name is required' })
     @IsString()
@@ -17,6 +17,14 @@ export class UploadMenuItemImageDto {
     @IsNotEmpty({ message: 'The mime type is required' })
     @Transform(({ value }) => typeof value === 'string' ? value.trim().toLowerCase() : value)
     mimeType!: string;
+}
+
+export class ConfirmUploadProductImageDto {
+    @MinLength(20, { message: 'The key is invalid' })
+    @IsNotEmpty({ message: 'The key is required' })
+    @IsString()
+    @Transform(({ value }) => typeof value === 'string' ? value.trim() : value)
+    key!: string;
 }
 
 export class DeleteMenuItemImageDto {

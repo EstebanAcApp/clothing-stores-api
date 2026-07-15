@@ -2,7 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
-import { UploadMenuItemImageDto, DeleteMenuItemImageDto } from './dto/product-image.dto'
+import { UploadProductImageDto, ConfirmUploadProductImageDto, DeleteMenuItemImageDto } from './dto/product-image.dto'
 
 import { PrismaService } from 'src/prisma/prisma.service';
 import { AwsService } from 'src/aws/aws.service';
@@ -239,26 +239,46 @@ export class ProductsService {
     }
   }
 
-  async uploadProductImage(
+  async getProductImageUploadUrl(
     id: string,
-    { fileName, mimeType }: UploadMenuItemImageDto,
+    { fileName, mimeType }: UploadProductImageDto,
   ) {
     const { uploadUrl, key } = await this.aws.getUploadPresignedUrl(id, fileName, mimeType);
 
+    return { uploadUrl, key };
+  }
+
+  async confirmUploadProductImage(
+    id: string,
+    { key }: ConfirmUploadProductImageDto,
+  ) {
     try {
-      await this.prisma.product.update({
+      const product = await this.prisma.product.update({
         where: { id },
         data: {
           mediaKeys: {
             push: key,
           },
         },
+        select: {
+          mediaKeys: true,
+        },
       });
+
+      if (product.mediaKeys && product.mediaKeys.length > 0) {
+        const { images } = await this.getImageUrls(product.mediaKeys);
+
+        return {
+          images,
+        };
+      }
+
+      return {
+        images: [],
+      };
     } catch (error) {
       this.prisma.handleError(error, 'Error updating the menu item images')
     }
-
-    return { uploadUrl, key };
   }
 
   async deleteProductImage(
