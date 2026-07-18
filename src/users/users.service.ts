@@ -97,40 +97,42 @@ export class UsersService {
         status,
       },
       select: {
+        id: true,
         email: true,
         name: true,
         role: true,
         status: true,
+        temporaryPassword: true,
+        createdAt: true,
       },
     });
 
     return {
-      message: 'User created successfully',
-      data: {
-        ...newUserData,
-        temporaryPassword,
-      },
+      ...newUserData,
+      password: temporaryPassword,
     };
   }
 
   async updateUser(
     userId: string,
-    { email, name, role, status }: UpdateUserDto,
+    { name, role, status }: UpdateUserDto,
   ) {
     try {
       return await this.prisma.user.update({
         where: { id: userId },
         data: {
-          email,
           name,
           role,
           status,
         },
         select: {
+          id: true,
           email: true,
           name: true,
           role: true,
           status: true,
+          temporaryPassword: true,
+          createdAt: true,
         },
       });
     } catch (error) {

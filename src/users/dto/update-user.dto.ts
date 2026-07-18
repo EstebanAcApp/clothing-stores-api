@@ -1,4 +1,19 @@
-import { PartialType } from '@nestjs/mapped-types';
-import { CreateUserDto } from './create-user.dto';
+import { Transform } from "class-transformer";
+import { IsEnum, IsNotEmpty, IsString } from "class-validator";
 
-export class UpdateUserDto extends PartialType(CreateUserDto) {}
+import { UserRole, UserStatus } from "generated/prisma/enums";
+
+export class UpdateUserDto {
+    @IsNotEmpty({ message: 'The name is required' })
+    @IsString({ message: 'The name must be a string' })
+    @Transform(({ value }) => typeof value === 'string' ? value.trim() : value)
+    name!: string;
+
+    @IsEnum(UserRole, { message: 'Invalid user role' })
+    @IsNotEmpty({ message: 'The user role is required' })
+    role!: UserRole;
+
+    @IsEnum(UserStatus, { message: 'Invalid user status' })
+    @IsNotEmpty({ message: 'The user status is required' })
+    status!: UserStatus;
+}
