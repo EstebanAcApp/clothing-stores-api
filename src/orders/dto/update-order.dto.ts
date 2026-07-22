@@ -1,9 +1,15 @@
+import { Transform } from "class-transformer";
 import { IsEnum, IsNotEmpty, IsString } from "class-validator";
-import { OrderStatus } from "generated/prisma/enums";
+import { Courier } from "generated/prisma/enums";
 
 export class UpdateOrderDto {
-    @IsEnum(OrderStatus, {message: 'The status is invalid'})
-    @IsNotEmpty({message: 'The status is required'})
+    @IsEnum(Courier, { message: 'The courier is invalid' })
+    @IsNotEmpty({ message: 'The courier is required' })
     @IsString()
-    status!: OrderStatus;
+    courier!: Courier;
+
+    @IsNotEmpty({ message: 'The courier is required' })
+    @IsString()
+    @Transform(({ value }) => typeof value === 'string' ? value.trim() : value)
+    deliveryGuide!: string;
 }

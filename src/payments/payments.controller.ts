@@ -13,7 +13,7 @@ export class PaymentsController {
 
     @Public()
     @Post('store')
-    async receiveMPWebhookStore(
+    receiveMPWebhookStore(
         @Headers('x-signature') xSignature: string,
         @Headers('x-request-id') xRequestId: string,
         @Query('data.id') dataId: string,
@@ -26,10 +26,10 @@ export class PaymentsController {
             req.body,
         );
     }
-
+    
     @Public()
     @Post('saas')
-    async receiveMPWebhookSaas(
+    receiveMPWebhookSaas(
         @Headers('x-signature') xSignature: string,
         @Headers('x-request-id') xRequestId: string,
         @Query('data.id') dataId: string,

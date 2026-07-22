@@ -1,7 +1,9 @@
 import { Module } from '@nestjs/common';
 
 import { AuthService } from './auth.service';
-import { StaffAuthController, CustomerAuthController } from './auth.controller';
+
+import { StaffAuthController } from './staff-auth.controller';
+import { CustomerAuthController } from './customer-auth.controller';
 
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';

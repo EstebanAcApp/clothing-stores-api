@@ -69,7 +69,11 @@ model Order {
 
   items OrderItem[]
   total Int
+
   paymentId String @unique @map("payment_id")
+
+  courier Courier?
+  deliveryGuide String? @unique @map("delivery_guide")
   
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -77,6 +81,8 @@ model Order {
   customerId String @map("customer_id")
   customer Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
 
+  @@unique([courier, deliveryGuide])
+  
   @@map("orders")
 }
 
@@ -143,6 +149,7 @@ model ProductVariant {
 
   @@unique([id, productId])
   @@unique([productId, colorId, sizeId])
+
   @@map("product_variants")
 }
 
@@ -173,30 +180,54 @@ enum UserRole {
   OWNER
   MANAGER
   WORKER
-  DELIVERY
+
+  @@map("user_roles")
 }
 
 enum UserStatus {
   ACTIVE
   INACTIVE
   FIRED
+
+  @@map("user_statuses")
+}
+
+enum Courier {
+  INTERRAPIDISIMO
+  SERVIENTREGA
+  COORDINADORA
+  ENVIA
+  TCC
+  DEPRISA
+  OTHER
+
+  @@map("couriers")
 }
 
 // Customer
 enum CustomerStatus {
   ACTIVE
   INACTIVE
+
+  @@map("customer_statuses")
 }
 
 enum OrderStatus {
   PENDING
+  PROCESSING
   CONFIRMED
-  CANCELLED
+  SHIPPED
   DELIVERED
+  REFUNDED
+  CANCELLED
+
+  @@map("order_statuses")
 }
 
 // Shared
 enum ProductStatus {
   ACTIVE
   INACTIVE
+
+  @@map("product_statuses")
 }

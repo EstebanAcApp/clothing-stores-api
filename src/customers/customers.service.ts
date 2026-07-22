@@ -1,6 +1,5 @@
 import { Injectable } from '@nestjs/common';
 
-import { CreateCustomerDto } from './dto/create-customer.dto';
 import { UpdateCustomerDto } from './dto/update-customer.dto';
 
 import { PrismaService } from 'src/prisma/prisma.service';
@@ -40,24 +39,28 @@ export class CustomersService {
   async getSelfOrderById(
     id: string,
     customerId: string,
-  ){
+  ) {
     return await this.ordersService.getSelfOrderById(id, customerId);
   }
 
   async updateCustomer(
     id: string,
-    dto: UpdateCustomerDto,
+    { phone, address }: UpdateCustomerDto,
   ) {
     try {
-      return await this.prisma.customer.update({
+      await this.prisma.customer.update({
         where: { id },
         data: {
-
+          phone,
+          address,
         },
         select: {
-          email: true
-        }
+          phone: true,
+          address: true,
+        },
       });
+
+      return { message: 'Customer updated' };
     } catch (error) {
       this.prisma.handleError(error, 'Error updating your data');
     }

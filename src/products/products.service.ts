@@ -36,10 +36,10 @@ export class ProductsService {
     colorId?: string,
     sizeId?: string,
   ) {
-    if (limit > 30) {
-      throw new  BadRequestException('The maximum limit is 30 products');
+    if (limit > 20) {
+      throw new BadRequestException('The maximum limit is 20 products');
     }
-    
+
     const skip = (page - 1) * limit;
 
     const [products, categories, colors, sizes, total] = await this.prisma.$transaction([
@@ -92,7 +92,17 @@ export class ProductsService {
       }),
       this.prisma.product.count({
         where: {
+          status: 'ACTIVE',
+          variants: { some: { stock: { gte: 1 } } },
           ...(categoryId && { categoryId }),
+          ...((colorId || sizeId) && {
+            variants: {
+              some: {
+                ...(colorId && { colorId }),
+                ...(sizeId && { sizeId }),
+              },
+            },
+          }),
         },
       }),
     ]);

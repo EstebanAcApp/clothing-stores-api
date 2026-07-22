@@ -28,8 +28,6 @@ export class PaymentsWebhookService {
         try {
             switch (body.action) {
                 case 'order.processed': {
-                    const cancelledStatuses = ['card_insufficient_amount', 'invalid_installments', 'processing_error', 'canceled'];
-
                     if (body.data.status === 'processed' && body.data.status_detail === 'accredited') {
                         const order = await this.prisma.order.update({
                             where: { id: body.data.external_reference, paymentId: body.data.id },
@@ -55,17 +53,79 @@ export class PaymentsWebhookService {
                                 }),
                             ),
                         );
-                    } else if (body.data.status === 'processed' && cancelledStatuses.includes(body.data.status_detail)) {
-                        await this.prisma.order.update({
-                            where: { id: body.data.external_reference, paymentId: body.data.id },
-                            data: { status: 'CANCELLED' },
-                        });
-                        this.logger.log(`Order ${body.data.id} cancelled`);
+                    } else if (body.data.status === 'processed' && body.data.status_detail === 'partially_refunded') {
+                        this.logger.log(`Order ${body.data.external_reference} partially refunded`);
                     } else {
                         this.logger.log(`Order ${body.data.external_reference} not final: ${body.data.status}/${body.data.status_detail}`);
                     }
                     break;
                 }
+
+                case 'order.failed': {
+                    await this.prisma.order.update({
+                        where: { id: body.data.external_reference, paymentId: body.data.id },
+                        data: { status: 'CANCELLED' },
+                    });
+                    this.logger.log(`Order ${body.data.external_reference} failed: ${body.data.status_detail}`);
+                    break;
+                }
+
+                case 'order.canceled': {
+                    await this.prisma.order.update({
+                        where: { id: body.data.external_reference, paymentId: body.data.id },
+                        data: { status: 'CANCELLED' },
+                    });
+                    this.logger.log(`Order ${body.data.external_reference} failed: ${body.data.status_detail}`);
+                    break;
+                }
+
+                case 'order.expired': {
+                    await this.prisma.order.update({
+                        where: { id: body.data.external_reference, paymentId: body.data.id },
+                        data: { status: 'CANCELLED' },
+                    });
+                    this.logger.log(`Order ${body.data.external_reference} expired`);
+                    break;
+                }
+                
+                case 'order.action_required': {
+                    this.logger.log(`Order ${body.data.external_reference} needs action: ${body.data.status_detail}`);
+                    break;
+                }
+
+                case 'order.refunded': {
+                    const order = await this.prisma.order.update({
+                        where: { id: body.data.external_reference, paymentId: body.data.id },
+                        data: { status: 'REFUNDED' },
+                        select: {
+                            id: true,
+                            items: {
+                                select: {
+                                    productVariantId: true,
+                                    quantity: true,
+                                },
+                            },
+                        },
+                    });
+
+                    this.logger.log(`Order ${order.id} refunded`);
+
+                    await this.prisma.$transaction(
+                        order.items.map((item) =>
+                            this.prisma.productVariant.update({
+                                where: { id: item.productVariantId },
+                                data: { stock: { increment: item.quantity } },
+                            }),
+                        ),
+                    );
+                    break;
+                }
+
+                case 'order.charged_back': {
+                    this.logger.warn(`Order ${body.data.external_reference} charged back: ${body.data.status_detail}`);
+                    break;
+                }
+
                 default: {
                     this.logger.log(`Unhandled webhook action: ${body.action}`);
                 }
@@ -153,10 +213,10 @@ export class PaymentsWebhookService {
         }
 
         try {
-            await WebhookSignatureValidator.validate({
+            WebhookSignatureValidator.validate({
                 xSignature,
                 xRequestId,
-                dataId,
+                dataId: dataId.toLowerCase(),
                 secret: webhookSecret,
             });
             this.logger.log('Webhook validated');

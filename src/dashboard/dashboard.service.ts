@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 
 import { PrismaService } from 'src/prisma/prisma.service';
 import { ProductsService } from 'src/products/products.service';
@@ -17,7 +17,6 @@ export class DashboardService {
   async getStats() {
     const [recentOrders, topProducts, totalSales, quantityOfProductsSold, ordersPendingDelivery, deliveredOrders] = await this.prisma.$transaction([
       this.prisma.order.findMany({
-        where: { status: 'CONFIRMED' },
         select: {
           id: true,
           name: true,
@@ -33,6 +32,11 @@ export class DashboardService {
       }),
       this.prisma.orderItem.groupBy({
         by: ['productId'],
+        where: {
+          order: {
+            status: 'CONFIRMED',
+          },
+        },
         _sum: {
           quantity: true,
         },
@@ -53,6 +57,7 @@ export class DashboardService {
     const productsData = await this.prisma.product.findMany({
       where: { id: { in: productIds } },
       select: {
+        id: true,
         name: true,
         description: true,
         price: true,
@@ -66,28 +71,37 @@ export class DashboardService {
       },
     });
 
-    const processedProducts = await Promise.all(
-      productsData.map(async (product) => {
-        let imageUrls: string[] = [];
+    const productsMap = new Map(
+      await Promise.all(
+        productsData.map(async (product) => {
+          let imageUrls: string[] = [];
 
-        if (product.mediaKeys && product.mediaKeys.length > 0) {
-          const firstMediaKey = product.mediaKeys[0];
-          const { images } = await this.productsService.getImageUrls([firstMediaKey]);
-          imageUrls = images;
-        }
+          if (product.mediaKeys && product.mediaKeys.length > 0) {
+            const firstMediaKey = product.mediaKeys[0];
+            const { images } = await this.productsService.getImageUrls([firstMediaKey]);
+            imageUrls = images;
+          }
 
-        const { mediaKeys, ...productWithoutKeys } = product;
+          const { mediaKeys, ...productWithoutKeys } = product;
 
-        return {
-          ...productWithoutKeys,
-          images: imageUrls,
-        };
-      })
+          return [
+            product.id,
+            {
+              ...productWithoutKeys,
+              images: imageUrls,
+            },
+          ] as const;
+        })
+      )
     );
+
+    const orderedTopProducts = topProducts
+      .map((item) => productsMap.get(item.productId))
+      .filter(Boolean);
 
     return {
       recentOrders,
-      topProducts: processedProducts,
+      topProducts: orderedTopProducts,
       totalSales: totalSales._sum.total === null ? 0 : totalSales._sum.total,
       quantityOfProductsSold: quantityOfProductsSold._sum.quantity === null ? 0 : quantityOfProductsSold._sum.quantity,
       ordersPendingDelivery,
@@ -102,6 +116,10 @@ export class DashboardService {
     colorId?: string,
     sizeId?: string,
   ) {
+    if (limit > 20) {
+      throw new BadRequestException('The maximum limit is 20 products');
+    }
+
     const skip = (page - 1) * limit;
 
     const [products, categories, colors, sizes, activeProducts, inactiveProducts, totalCategories, totalProducts] = await this.prisma.$transaction([

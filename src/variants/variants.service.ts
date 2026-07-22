@@ -46,6 +46,15 @@ export class VariantsService {
       return await this.prisma.productVariant.update({
         where: { id },
         data: { stock },
+        select: {
+          id: true,
+          stock: true,
+          productId: true,
+          colorId: true,
+          sizeId: true,
+          color: true,
+          size: true,
+        },
       });
     } catch (error) {
       this.prisma.handleError(error, 'Error updating the product variant');

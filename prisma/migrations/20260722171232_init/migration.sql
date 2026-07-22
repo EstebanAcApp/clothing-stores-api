@@ -2,19 +2,22 @@
 CREATE EXTENSION IF NOT EXISTS "citext";
 
 -- CreateEnum
-CREATE TYPE "UserRole" AS ENUM ('OWNER', 'MANAGER', 'WORKER', 'DELIVERY');
+CREATE TYPE "user_roles" AS ENUM ('OWNER', 'MANAGER', 'WORKER');
 
 -- CreateEnum
-CREATE TYPE "UserStatus" AS ENUM ('ACTIVE', 'INACTIVE', 'FIRED');
+CREATE TYPE "user_statuses" AS ENUM ('ACTIVE', 'INACTIVE', 'FIRED');
 
 -- CreateEnum
-CREATE TYPE "CustomerStatus" AS ENUM ('ACTIVE', 'INACTIVE');
+CREATE TYPE "couriers" AS ENUM ('INTERRAPIDISIMO', 'SERVIENTREGA', 'COORDINADORA', 'ENVIA', 'TCC', 'DEPRISA', 'OTHER');
 
 -- CreateEnum
-CREATE TYPE "OrderStatus" AS ENUM ('PENDING', 'CONFIRMED', 'CANCELLED', 'DELIVERED');
+CREATE TYPE "customer_statuses" AS ENUM ('ACTIVE', 'INACTIVE');
 
 -- CreateEnum
-CREATE TYPE "ProductStatus" AS ENUM ('ACTIVE', 'INACTIVE');
+CREATE TYPE "order_statuses" AS ENUM ('PENDING', 'PROCESSING', 'CONFIRMED', 'SHIPPED', 'DELIVERED', 'REFUNDED', 'CANCELLED');
+
+-- CreateEnum
+CREATE TYPE "product_statuses" AS ENUM ('ACTIVE', 'INACTIVE');
 
 -- CreateTable
 CREATE TABLE "users" (
@@ -22,8 +25,8 @@ CREATE TABLE "users" (
     "email" TEXT NOT NULL,
     "password" TEXT NOT NULL,
     "name" TEXT NOT NULL,
-    "role" "UserRole" NOT NULL,
-    "status" "UserStatus" NOT NULL,
+    "role" "user_roles" NOT NULL,
+    "status" "user_statuses" NOT NULL,
     "temporaryPassword" BOOLEAN NOT NULL DEFAULT true,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
@@ -49,7 +52,7 @@ CREATE TABLE "customers" (
     "last_name" TEXT NOT NULL,
     "phone" TEXT NOT NULL,
     "address" TEXT NOT NULL,
-    "status" "CustomerStatus" NOT NULL DEFAULT 'ACTIVE',
+    "status" "customer_statuses" NOT NULL DEFAULT 'ACTIVE',
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "customers_pkey" PRIMARY KEY ("id")
@@ -61,9 +64,11 @@ CREATE TABLE "orders" (
     "name" TEXT NOT NULL,
     "phone" TEXT NOT NULL,
     "address" TEXT NOT NULL,
-    "status" "OrderStatus" NOT NULL DEFAULT 'PENDING',
+    "status" "order_statuses" NOT NULL DEFAULT 'PENDING',
     "total" INTEGER NOT NULL,
     "payment_id" TEXT NOT NULL,
+    "courier" "couriers",
+    "delivery_guide" TEXT,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL,
     "customer_id" TEXT NOT NULL,
@@ -98,7 +103,7 @@ CREATE TABLE "products" (
     "name" CITEXT NOT NULL,
     "description" TEXT NOT NULL,
     "price" INTEGER NOT NULL,
-    "status" "ProductStatus" NOT NULL,
+    "status" "product_statuses" NOT NULL,
     "media_keys" TEXT[],
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL,
@@ -146,6 +151,12 @@ CREATE UNIQUE INDEX "customers_username_key" ON "customers"("username");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "orders_payment_id_key" ON "orders"("payment_id");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "orders_delivery_guide_key" ON "orders"("delivery_guide");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "orders_courier_delivery_guide_key" ON "orders"("courier", "delivery_guide");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "categories_name_key" ON "categories"("name");
