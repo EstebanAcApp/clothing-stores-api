@@ -236,6 +236,8 @@ export class DashboardService {
           address: true,
           status: true,
           total: true,
+          courier: true,
+          deliveryGuide: true,
           createdAt: true,
           updatedAt: true,
         },
