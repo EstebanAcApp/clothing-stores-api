@@ -11,7 +11,6 @@
   <a href="https://www.prisma.io/docs/orm" target="_blank"><img src="https://img.shields.io/badge/versión-v7.8.0-green?label=Prisma&logo=prisma&logoColor=white" alt="Version 7.8.0"></a>
   <a href="https://www.npmjs.com/package/@aws-sdk/client-s3" target="_blank"><img src="https://img.shields.io/badge/versión-v3.1072.0-green?label=AWS%20S3" alt="Version 3.1072.0"></a>
   <a href="https://www.npmjs.com/package/mercadopago" target="_blank"><img src="https://img.shields.io/badge/versión-v3.1.0-green?label=Mercado%20Pago&logo=mercadopago&logoColor=white" alt="Version 3.1.0"></a>
-  <a href="https://x.com/EstebanDev11" target="_blank"><img src="https://img.shields.io/twitter/follow/EstebanDev11?label=Follow" alt="Follow on Twitter"></a>
 </p>
 
 ## Description
@@ -22,20 +21,20 @@ This API is designed for use in clothing stores; it implements role management f
 
 The API is structured into modular domains using NestJS best practices. Below is a breakdown of the available modules and their access controls:
 
-| Module        | Routes | Staff | Customer | Controller | Public Routes |
-| ------------- | :----: | :---: | :------: | :--------: | :-----------: |
-| **Auth**      |   7    |  ✅   |    ✅    |     ✅     |      ✅       |
-| **Users**     |   4    |  ✅   |    ❌    |     ✅     |      ❌       |
-| **Dashboard** |   6    |  ✅   |    ❌    |     ✅     |      ❌       |
-| **Customers** |   4    |  ❌   |    ✅    |     ✅     |      ❌       |
-| **Orders**    |   4    |  ✅   |    ✅    |     ✅     |      ❌       |
-| **Products**  |   7    |  ✅   |    ✅    |     ✅     |      ✅       |
-| **Variants**  |   3    |  ✅   |    ❌    |     ✅     |      ❌       |
-| **Colors**    |   3    |  ✅   |    ❌    |     ✅     |      ❌       |
-| **Sizes**     |   3    |  ✅   |    ❌    |     ✅     |      ❌       |
-| **Payments**  |   2    |  ❌   |    ❌    |     ✅     |      ✅       |
-| **Prisma**    |   0    |  ✅   |    ✅    |     ❌     |      ❌       |
-| **Aws**       |   0    |  ✅   |    ❌    |     ❌     |      ❌       |
+| Module        | Routes | Staff | Customer | Public Routes |
+| ------------- | :----: | :---: | :------: | :-----------: |
+| **Auth**      |   7    |  ✅   |    ✅    |      ✅       |
+| **Users**     |   4    |  ✅   |    ❌    |      ❌       |
+| **Dashboard** |   6    |  ✅   |    ❌    |      ❌       |
+| **Customers** |   4    |  ❌   |    ✅    |      ❌       |
+| **Orders**    |   4    |  ✅   |    ✅    |      ❌       |
+| **Products**  |   7    |  ✅   |    ✅    |      ✅       |
+| **Variants**  |   3    |  ✅   |    ❌    |      ❌       |
+| **Colors**    |   3    |  ✅   |    ❌    |      ❌       |
+| **Sizes**     |   3    |  ✅   |    ❌    |      ❌       |
+| **Payments**  |   2    |  ❌   |    ❌    |      ✅       |
+| **Prisma**    |   0    |  ✅   |    ✅    |      ❌       |
+| **Aws**       |   0    |  ✅   |    ❌    |      ❌       |
 
 ## Requirements & Prerequisites
 
@@ -50,9 +49,9 @@ Before running or deploying this project, ensure you have the following credenti
 1. **Clone the repository.**
 
 ```bash
-git clone https://github.com/EstebanAcApp/ClothingStores-API.git
+git clone https://github.com/EstebanAcApp/clothing-stores-api.git
 
-cd ClothingStores-API
+cd clothing-stores-api
 ```
 
 2. **Install the dependencies.**
@@ -124,7 +123,6 @@ $ npm run deploy:prod
 ## Stay in touch
 
 - **Author** (Linkedin) - [Esteban Acosta Aponte](https://www.linkedin.com/in/estebandev11)
-- **X** (Twitter) - [@EstebanDev11](https://x.com/EstebanDev11)
 
 ## License
 
